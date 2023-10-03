@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "385012297814",
+    "project_id": "we-messamge",
+    "storage_bucket": "we-messamge.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:385012297814:android:78f6825b73c25fef664bf7",
+        "android_client_info": {
+          "package_name": "com.example.schats"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "385012297814-214m40j827ueqnip0ivu1oijhukglof7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.schats",
+            "certificate_hash": "d78c0b4ecf7181f6612fe7c7ad9a7f7a2920b242"
+          }
+        },
+        {
+          "client_id": "385012297814-g8lqep3jo3j373pshbsirfcdhq6vm7rh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCfInoQzU_-A2uf2DXikCZVN-RuFliwMXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "385012297814-g8lqep3jo3j373pshbsirfcdhq6vm7rh.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "385012297814-5fu48u0h17qd20jt6rcure0j52nokn6f.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.schats"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
