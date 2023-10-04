@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:schats/main.dart';
 import 'package:schats/model/user_model.dart';
+import 'package:schats/view/chat_screen/chats_screen.dart';
 import 'package:velocity_x/velocity_x.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -22,7 +24,9 @@ class _ChatUsersState extends State<ChatUsers> {
       elevation: 0.5,
       margin: EdgeInsets.symmetric(horizontal: mq.width * .02, vertical: 3),
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Get.to(() => ChatScreen(user: widget.user));
+        },
         child: ListTile(
           leading: ClipRRect(
             borderRadius: BorderRadius.circular(mq.height * .03),

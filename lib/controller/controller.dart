@@ -86,4 +86,9 @@ class Controller {
       'image': me.image,
     });
   }
+
+  //getting al message from database
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages() {
+    return firestoreController.collection('messages').snapshots();
+  }
 }
