@@ -53,7 +53,9 @@ class _ChatUsersState extends State<ChatUsers> {
 
               title: widget.user.name.text.make(),
               subtitle: message != null
-                  ? message!.msg.text.make()
+                  ? message!.type == Type.image
+                      ? 'image'.text.make()
+                      : message!.msg.text.make()
                   : widget.user.about.text.maxLines(1).make(),
               trailing: message == null
                   ? null

@@ -9,7 +9,7 @@ import 'package:schats/view/profile_screen/profile_screen.dart';
 import 'package:velocity_x/velocity_x.dart';
 
 class HomeScreeen extends StatefulWidget {
-  const HomeScreeen({super.key});
+  const HomeScreeen({Key? key}) : super(key: key);
 
   @override
   State<HomeScreeen> createState() => _HomeScreeenState();
@@ -23,7 +23,20 @@ class _HomeScreeenState extends State<HomeScreeen> {
   @override
   void initState() {
     super.initState();
-    Controller.getSelfInfo();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      await Controller.getSelfInfo();
+      if (Controller.me != null) {
+        setState(() {
+          // Set the state after getting the data.
+        });
+      }
+    } catch (e) {
+      // Handle errors here, such as displaying an error message.
+    }
   }
 
   @override
@@ -42,7 +55,6 @@ class _HomeScreeenState extends State<HomeScreeen> {
           }
         },
         child: Scaffold(
-          //app bar
           appBar: AppBar(
             leading: const Icon(
               CupertinoIcons.home,
@@ -81,13 +93,12 @@ class _HomeScreeenState extends State<HomeScreeen> {
               IconButton(
                   onPressed: () {
                     Get.to(() => ProfileScreeen(
-                          user: Controller.me,
+                          user: Controller.me!,
                         ));
                   },
                   icon: const Icon(Icons.more_vert)),
             ],
           ),
-          //add mesage buttun
           floatingActionButton: Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: FloatingActionButton(
@@ -129,6 +140,8 @@ class _HomeScreeenState extends State<HomeScreeen> {
                       child: "No Connection Found".text.size(20).make(),
                     );
                   }
+                default:
+                  return const SizedBox();
               }
             },
           ),

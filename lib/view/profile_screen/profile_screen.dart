@@ -121,7 +121,7 @@ class _ProfileScreeenState extends State<ProfileScreeen> {
                   //name feild
                   TextFormField(
                     initialValue: widget.user.name,
-                    onSaved: (value) => Controller.me.name = value ?? '',
+                    onSaved: (value) => Controller.me!.name = value ?? '',
                     validator: (value) => value != null && value.isNotEmpty
                         ? null
                         : 'Required Field',
@@ -141,7 +141,7 @@ class _ProfileScreeenState extends State<ProfileScreeen> {
                   //about feild
                   TextFormField(
                     initialValue: widget.user.about,
-                    onSaved: (value) => Controller.me.about = value ?? '',
+                    onSaved: (value) => Controller.me!.about = value ?? '',
                     validator: (value) => value != null && value.isNotEmpty
                         ? null
                         : 'Required Field',

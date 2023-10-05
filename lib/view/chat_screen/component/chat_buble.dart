@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:schats/common_Widget/my_date_utils.dart';
 import 'package:schats/controller/controller.dart';
@@ -30,19 +31,39 @@ class _MessageBubleState extends State<MessageBuble> {
       children: [
         Flexible(
           child: Container(
-            padding: EdgeInsets.all(mq.width * .03),
+            padding: EdgeInsets.all(widget.message.type == Type.image
+                ? mq.width * .001
+                : mq.width * .03),
             margin: EdgeInsets.symmetric(
                 horizontal: mq.width * .04, vertical: mq.height * .03),
             decoration: BoxDecoration(
-                color: const Color.fromARGB(255, 221, 245, 255),
-                border: Border.all(color: Colors.lightBlue),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25),
-                  topRight: Radius.circular(25),
-                  bottomRight: Radius.circular(25),
-                )),
-            child:
-                widget.message.msg.text.size(15).color(Colors.black87).make(),
+              color: const Color.fromARGB(255, 221, 245, 255),
+              border: Border.all(color: Colors.lightBlue),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
+                bottomRight: Radius.circular(25),
+              ),
+            ),
+            child: widget.message.type == Type.text
+                ? widget.message.msg.text.size(15).color(Colors.black87).make()
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: CachedNetworkImage(
+                      fit: BoxFit.cover,
+                      imageUrl: widget.message.msg,
+                      placeholder: (context, url) => const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.broken_image_rounded,
+                        size: 70,
+                      ),
+                    ),
+                  ),
           ),
         ),
         MyDateUtils.getFormattedTime(
@@ -87,7 +108,9 @@ class _MessageBubleState extends State<MessageBuble> {
         ),
         Flexible(
           child: Container(
-            padding: EdgeInsets.all(mq.width * .03),
+            padding: EdgeInsets.all(widget.message.type == Type.image
+                ? mq.width * .001
+                : mq.width * .03),
             margin: EdgeInsets.symmetric(
                 horizontal: mq.width * .04, vertical: mq.height * .03),
             decoration: BoxDecoration(
@@ -98,8 +121,25 @@ class _MessageBubleState extends State<MessageBuble> {
                   topRight: Radius.circular(25),
                   bottomLeft: Radius.circular(25),
                 )),
-            child:
-                widget.message.msg.text.size(15).color(Colors.black87).make(),
+            child: widget.message.type == Type.text
+                ? widget.message.msg.text.size(15).color(Colors.black87).make()
+                : ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: CachedNetworkImage(
+                      fit: BoxFit.cover,
+                      imageUrl: widget.message.msg,
+                      placeholder: (context, url) => const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.broken_image_rounded,
+                        size: 70,
+                      ),
+                    ),
+                  ),
           ),
         ),
       ],

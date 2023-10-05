@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:schats/controller/controller.dart';
 import 'package:schats/main.dart';
 import 'package:schats/model/chat_model.dart';
@@ -20,59 +23,73 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   List<Message> _list = [];
   final textController = TextEditingController();
+  var isUploading = false;
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          flexibleSpace: _appbar(),
-        ),
-        body: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder(
-                stream: Controller.getAllMessages(widget.user),
-                // stream: Controller.getAllUsers(),
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                    case ConnectionState.none:
-                      return const Center(
-                        child: SizedBox(),
-                      );
-
-                    case ConnectionState.active:
-                    case ConnectionState.done:
-                      final data = snapshot.data?.docs;
-                      // print('Data: ${jsonEncode(data![0].data())}');
-                      _list = data
-                              ?.map((e) => Message.fromJson(e.data()))
-                              .toList() ??
-                          [];
-
-                      if (_list.isNotEmpty) {
-                        return ListView.builder(
-                          padding: EdgeInsets.only(top: mq.height * .01),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _list.length,
-                          itemBuilder: (context, index) {
-                            return MessageBuble(
-                              message: _list[index],
-                            );
-                          },
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: SafeArea(
+        child: Scaffold(
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            flexibleSpace: _appbar(),
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: StreamBuilder(
+                  stream: Controller.getAllMessages(widget.user),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.none:
+                        return const Center(
+                          child: SizedBox(),
                         );
-                      } else {
-                        return Center(
-                          child: "Start messing...".text.size(20).make(),
-                        );
-                      }
-                  }
-                },
+
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                        final data = snapshot.data?.docs;
+                        // print('Data: ${jsonEncode(data![0].data())}');
+                        _list = data
+                                ?.map((e) => Message.fromJson(e.data()))
+                                .toList() ??
+                            [];
+
+                        if (_list.isNotEmpty) {
+                          return ListView.builder(
+                            reverse: true,
+                            padding: EdgeInsets.only(top: mq.height * .01),
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: _list.length,
+                            itemBuilder: (context, index) {
+                              return MessageBuble(
+                                message: _list[index],
+                              );
+                            },
+                          );
+                        } else {
+                          return Center(
+                            child: "Start messing...".text.size(20).make(),
+                          );
+                        }
+                    }
+                  },
+                ),
               ),
-            ),
-            _chatInput(),
-          ],
+              if (isUploading)
+                const Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+                    child: CircularProgressIndicator(
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
+              _chatInput(),
+            ],
+          ),
         ),
       ),
     );
@@ -159,8 +176,17 @@ class _ChatScreenState extends State<ChatScreen> {
                         border: InputBorder.none),
                   )),
                   IconButton(
-                    onPressed: () {
-                      Get.back();
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      // Pick an image.
+                      final List<XFile> images =
+                          await picker.pickMultiImage(imageQuality: 70);
+                      for (var i in images) {
+                        setState(() => isUploading = true);
+                        await Controller.sendChatImage(
+                            widget.user, File(i.path));
+                        setState(() => isUploading = false);
+                      }
                     },
                     icon: const Icon(
                       Icons.image,
@@ -169,8 +195,17 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      Get.back();
+                    onPressed: () async {
+                      final ImagePicker picker = ImagePicker();
+                      // Pick an image.
+                      final XFile? image = await picker.pickImage(
+                          source: ImageSource.camera, imageQuality: 70);
+                      if (image != null) {
+                        setState(() => isUploading = true);
+                        await Controller.sendChatImage(
+                            widget.user, File(image.path));
+                        setState(() => isUploading = false);
+                      }
                     },
                     icon: const Icon(
                       Icons.camera_alt_rounded,
@@ -186,7 +221,8 @@ class _ChatScreenState extends State<ChatScreen> {
           MaterialButton(
             onPressed: () {
               if (textController.text.isNotEmpty) {
-                Controller.sendMessage(widget.user, textController.text);
+                Controller.sendMessage(
+                    widget.user, textController.text, Type.text);
                 textController.text = '';
               }
             },

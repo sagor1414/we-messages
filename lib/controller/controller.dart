@@ -14,8 +14,7 @@ class Controller {
 
   static User get user => authController.currentUser!;
 
-  // store self info
-  static late ChatUser me;
+  static ChatUser? me;
 
   static Future<bool> userExists() async {
     return (await firestoreController
@@ -25,33 +24,38 @@ class Controller {
         .exists;
   }
 
-  //get user info
   static Future<void> getSelfInfo() async {
-    await firestoreController
-        .collection('users')
-        .doc(authController.currentUser!.uid)
-        .get()
-        .then((user) async => {
-              if (user.exists)
-                {me = ChatUser.fromJson(user.data()!)}
-              else
-                {await createUser().then((value) => getSelfInfo())}
-            });
+    try {
+      final user = await firestoreController
+          .collection('users')
+          .doc(authController.currentUser!.uid)
+          .get();
+
+      if (user.exists) {
+        me = ChatUser.fromJson(user.data()!);
+      } else {
+        await createUser();
+        await getSelfInfo();
+      }
+    } catch (e) {
+      rethrow;
+    }
   }
 
   static Future<void> createUser() async {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final chatUser = ChatUser(
-        image: user.photoURL.toString(),
-        about: "Hay i am using we message",
-        name: user.displayName.toString(),
-        createdAt: time,
-        lastActive: time,
-        id: user.uid,
-        isOnline: false,
-        email: user.email.toString(),
-        pushToken: '');
+      image: user.photoURL.toString(),
+      about: "Hay i am using we message",
+      name: user.displayName.toString(),
+      createdAt: time,
+      lastActive: time,
+      id: user.uid,
+      isOnline: false,
+      email: user.email.toString(),
+      pushToken: '',
+    );
 
     return (await firestoreController
         .collection('users')
@@ -68,10 +72,17 @@ class Controller {
   }
 
   static Future<void> updateUserInfo() async {
-    await firestoreController.collection('users').doc(user.uid).update({
-      'name': me.name,
-      'about': me.about,
-    });
+    if (me == null) {
+      return; // Return early if me is null.
+    }
+    try {
+      await firestoreController.collection('users').doc(user.uid).update({
+        'name': me!.name,
+        'about': me!.about,
+      });
+    } catch (e) {
+      rethrow;
+    }
   }
 
   static Future<void> updateProfilePicture(File file) async {
@@ -82,9 +93,9 @@ class Controller {
         .then((p0) {
       log('Data Transferred: ${p0.bytesTransferred / 1000}kb');
     });
-    me.image = await ref.getDownloadURL();
+    me!.image = await ref.getDownloadURL();
     await firestoreController.collection('users').doc(user.uid).update({
-      'image': me.image,
+      'image': me!.image,
     });
   }
 
@@ -97,17 +108,19 @@ class Controller {
       ChatUser user) {
     return firestoreController
         .collection('/chats/${getConversationID(user.id)}/messages/')
+        .orderBy('sent', descending: true)
         .snapshots();
   }
 
-  static Future<void> sendMessage(ChatUser chatUser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser chatUser, String msg, Type type) async {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
 
     final Message message = Message(
         msg: msg,
         toId: chatUser.id,
         read: '',
-        type: Type.text,
+        type: type,
         sent: time,
         fromId: user.uid);
 
@@ -130,5 +143,18 @@ class Controller {
         .orderBy('sent', descending: true)
         .limit(1)
         .snapshots();
+  }
+
+  static Future<void> sendChatImage(ChatUser chatuser, File file) async {
+    final ext = file.path.split('.').last;
+    final ref = storage.ref().child(
+        'images/${getConversationID(chatuser.id)}/${DateTime.now().millisecondsSinceEpoch}.$ext');
+    await ref
+        .putFile(file, SettableMetadata(contentType: 'image/$ext'))
+        .then((p0) {
+      log('Data Transferred: ${p0.bytesTransferred / 1000}kb');
+    });
+    final imageUrl = await ref.getDownloadURL();
+    await sendMessage(chatuser, imageUrl, Type.image);
   }
 }
