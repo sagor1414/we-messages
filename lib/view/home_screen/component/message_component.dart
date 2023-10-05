@@ -1,7 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:schats/common_Widget/my_date_utils.dart';
+import 'package:schats/controller/controller.dart';
 import 'package:schats/main.dart';
+import 'package:schats/model/chat_model.dart';
 import 'package:schats/model/user_model.dart';
 import 'package:schats/view/chat_screen/chats_screen.dart';
 import 'package:velocity_x/velocity_x.dart';
@@ -16,6 +19,8 @@ class ChatUsers extends StatefulWidget {
 }
 
 class _ChatUsersState extends State<ChatUsers> {
+  Message? message;
+
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -27,28 +32,47 @@ class _ChatUsersState extends State<ChatUsers> {
         onTap: () {
           Get.to(() => ChatScreen(user: widget.user));
         },
-        child: ListTile(
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(mq.height * .03),
-            child: CachedNetworkImage(
-              width: mq.height * .060,
-              height: mq.height * .060,
-              imageUrl: widget.user.image,
-              errorWidget: (context, url, error) => const CircleAvatar(
-                child: Icon(CupertinoIcons.person_alt),
+        child: StreamBuilder(
+          stream: Controller.getLastMessages(widget.user),
+          builder: (context, snapshot) {
+            final data = snapshot.data?.docs;
+            final list = data!.map((e) => Message.fromJson(e.data())).toList();
+            if (list.isNotEmpty) message = list[0];
+            return ListTile(
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(mq.height * .03),
+                child: CachedNetworkImage(
+                  width: mq.height * .060,
+                  height: mq.height * .060,
+                  imageUrl: widget.user.image,
+                  errorWidget: (context, url, error) => const CircleAvatar(
+                    child: Icon(CupertinoIcons.person_alt),
+                  ),
+                ),
               ),
-            ),
-          ),
 
-          title: widget.user.name.text.make(),
-          subtitle: widget.user.about.text.maxLines(1).make(),
-          trailing: Container(
-            width: 15,
-            height: 15,
-            decoration: BoxDecoration(
-                color: Colors.blue, borderRadius: BorderRadius.circular(10)),
-          ),
-          // trailing: "12:12 PM".text.color(Colors.black54).make(),
+              title: widget.user.name.text.make(),
+              subtitle: message != null
+                  ? message!.msg.text.make()
+                  : widget.user.about.text.maxLines(1).make(),
+              trailing: message == null
+                  ? null
+                  : message!.read.isEmpty &&
+                          message!.fromId != Controller.user.uid
+                      ? Container(
+                          width: 15,
+                          height: 15,
+                          decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(10)),
+                        )
+                      : MyDateUtils.getLastMessageTime(
+                              context: context, time: message!.sent)
+                          .text
+                          .make(),
+              // trailing: "12:12 PM".text.color(Colors.black54).make(),
+            );
+          },
         ),
       ),
     );
