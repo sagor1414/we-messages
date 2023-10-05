@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:schats/common_Widget/my_date_utils.dart';
 import 'package:schats/controller/controller.dart';
 import 'package:schats/main.dart';
 import 'package:schats/model/chat_model.dart';
@@ -21,6 +22,9 @@ class _MessageBubleState extends State<MessageBuble> {
   }
 
   Widget blueMessage() {
+    if (widget.message.read.isEmpty) {
+      Controller.updateMessageReadStatus(widget.message);
+    }
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -41,7 +45,9 @@ class _MessageBubleState extends State<MessageBuble> {
                 widget.message.msg.text.size(15).color(Colors.black87).make(),
           ),
         ),
-        widget.message.sent.text
+        MyDateUtils.getFormattedTime(
+                context: context, time: widget.message.sent)
+            .text
             .size(13)
             .color(Colors.black45)
             .make()
@@ -61,13 +67,16 @@ class _MessageBubleState extends State<MessageBuble> {
             SizedBox(
               width: mq.width * .04,
             ),
-            const Icon(
-              Icons.done_all_rounded,
-              size: 20,
-              color: Colors.green,
-            ),
+            if (widget.message.read.isNotEmpty)
+              const Icon(
+                Icons.done_all_rounded,
+                size: 20,
+                color: Colors.green,
+              ),
             4.widthBox,
-            widget.message.read.text
+            MyDateUtils.getFormattedTime(
+                    context: context, time: widget.message.sent)
+                .text
                 .size(13)
                 .color(Colors.black45)
                 .make()
