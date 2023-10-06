@@ -4,9 +4,9 @@ class ChatUser {
     required this.about,
     required this.name,
     required this.createdAt,
-    required this.lastActive,
-    required this.id,
     required this.isOnline,
+    required this.id,
+    required this.lastActive,
     required this.email,
     required this.pushToken,
   });
@@ -14,9 +14,9 @@ class ChatUser {
   late String about;
   late String name;
   late String createdAt;
-  late String lastActive;
-  late String id;
   late bool isOnline;
+  late String id;
+  late String lastActive;
   late String email;
   late String pushToken;
 
@@ -25,9 +25,9 @@ class ChatUser {
     about = json['about'] ?? '';
     name = json['name'] ?? '';
     createdAt = json['created_at'] ?? '';
-    lastActive = json['last_active'] ?? '';
-    id = json['id'] ?? '';
     isOnline = json['is_online'] ?? '';
+    id = json['id'] ?? '';
+    lastActive = json['last_active'] ?? '';
     email = json['email'] ?? '';
     pushToken = json['push_token'] ?? '';
   }
@@ -38,9 +38,9 @@ class ChatUser {
     data['about'] = about;
     data['name'] = name;
     data['created_at'] = createdAt;
-    data['last_active'] = lastActive;
-    data['id'] = id;
     data['is_online'] = isOnline;
+    data['id'] = id;
+    data['last_active'] = lastActive;
     data['email'] = email;
     data['push_token'] = pushToken;
     return data;
