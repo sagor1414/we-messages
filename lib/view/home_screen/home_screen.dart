@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:schats/controller/controller.dart';
 import 'package:schats/main.dart';
@@ -16,27 +17,24 @@ class HomeScreeen extends StatefulWidget {
 }
 
 class _HomeScreeenState extends State<HomeScreeen> {
-  List<ChatUser> _list = [];
+  List<ChatUser>? _list = [];
   final List<ChatUser> _searchList = [];
   bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    try {
-      await Controller.getSelfInfo();
-      if (Controller.me != null) {
-        setState(() {
-          // Set the state after getting the data.
-        });
+    Controller.getSelfInfo();
+    Controller.updateActiveStatus(true);
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      if (message.toString().contains('resume')) {
+        Controller.updateActiveStatus(true);
       }
-    } catch (e) {
-      // Handle errors here, such as displaying an error message.
-    }
+      if (message.toString().contains('pause')) {
+        Controller.updateActiveStatus(false);
+      }
+      return Future.value(message);
+    });
   }
 
   @override
@@ -68,7 +66,7 @@ class _HomeScreeenState extends State<HomeScreeen> {
                     style: const TextStyle(fontSize: 17, letterSpacing: 0.5),
                     onChanged: (val) {
                       _searchList.clear();
-                      for (var i in _list) {
+                      for (var i in _list!) {
                         if (i.name.contains(val.toLowerCase()) ||
                             i.email.contains(val.toLowerCase())) {
                           _searchList.add(i);
@@ -107,41 +105,63 @@ class _HomeScreeenState extends State<HomeScreeen> {
             ),
           ),
           body: StreamBuilder(
-            stream: Controller.getAllUsers(),
+            stream: Controller.getMyUsersId(),
+
+            //get id of only known users
             builder: (context, snapshot) {
               switch (snapshot.connectionState) {
+                //if data is loading
                 case ConnectionState.waiting:
                 case ConnectionState.none:
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                  return const Center(child: CircularProgressIndicator());
 
+                //if some or all data is loaded then show it
                 case ConnectionState.active:
                 case ConnectionState.done:
-                  final data = snapshot.data?.docs;
-                  _list =
-                      data?.map((e) => ChatUser.fromJson(e.data())).toList() ??
-                          [];
-                  if (_list.isNotEmpty) {
-                    return ListView.builder(
-                      padding: EdgeInsets.only(top: mq.height * .01),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount:
-                          _isSearching ? _searchList.length : _list.length,
-                      itemBuilder: (context, index) {
-                        return ChatUsers(
-                            user: _isSearching
-                                ? _searchList[index]
-                                : _list[index]);
-                      },
-                    );
-                  } else {
-                    return Center(
-                      child: "No Connection Found".text.size(20).make(),
-                    );
-                  }
-                default:
-                  return const SizedBox();
+                  return StreamBuilder(
+                    stream: Controller.getAllUsers(
+                        snapshot.data?.docs.map((e) => e.id).toList() ?? []),
+
+                    //get only those user, who's ids are provided
+                    builder: (context, snapshot) {
+                      switch (snapshot.connectionState) {
+                        //if data is loading
+                        case ConnectionState.waiting:
+                        case ConnectionState.none:
+                        // return const Center(
+                        //     child: CircularProgressIndicator());
+
+                        //if some or all data is loaded then show it
+                        case ConnectionState.active:
+                        case ConnectionState.done:
+                          final data = snapshot.data?.docs;
+                          _list = data
+                                  ?.map((e) => ChatUser.fromJson(e.data()))
+                                  .toList() ??
+                              [];
+
+                          if (_list!.isNotEmpty) {
+                            return ListView.builder(
+                                itemCount: _isSearching
+                                    ? _searchList.length
+                                    : _list!.length,
+                                padding: EdgeInsets.only(top: mq.height * .01),
+                                physics: const BouncingScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  return ChatUsers(
+                                      user: _isSearching
+                                          ? _searchList[index]
+                                          : _list![index]);
+                                });
+                          } else {
+                            return const Center(
+                              child: Text('No Connections Found!',
+                                  style: TextStyle(fontSize: 20)),
+                            );
+                          }
+                      }
+                    },
+                  );
               }
             },
           ),

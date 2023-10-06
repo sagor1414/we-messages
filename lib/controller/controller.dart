@@ -64,11 +64,27 @@ class Controller {
   }
 
   //get all user
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
+      List<String> list) {
     return firestoreController
         .collection('users')
         .where('id', isNotEqualTo: user.uid)
         .snapshots();
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
+      ChatUser chatUser) {
+    return firestoreController
+        .collection('users')
+        .where('id', isEqualTo: chatUser.id)
+        .snapshots();
+  }
+
+  static Future<void> updateActiveStatus(bool isOnline) async {
+    firestoreController.collection('users').doc(user.uid).update({
+      'is_online': isOnline,
+      'last_active': DateTime.now().millisecondsSinceEpoch.toString()
+    });
   }
 
   static Future<void> updateUserInfo() async {
@@ -127,6 +143,14 @@ class Controller {
     final ref = firestoreController
         .collection('/chats/${getConversationID(chatUser.id)}/messages/');
     await ref.doc(time).set(message.toJson());
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyUsersId() {
+    return firestoreController
+        .collection('users')
+        .doc(user.uid)
+        .collection('my_users')
+        .snapshots();
   }
 
   static Future<void> updateMessageReadStatus(Message message) async {
