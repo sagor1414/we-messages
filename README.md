@@ -1,6 +1,6 @@
 # schats
 
-A new Flutter project.
+A maintaining commit
 
 ## Getting Started
 
