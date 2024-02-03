@@ -1,6 +1,5 @@
 # schats
-
-A maintaining commit
+this is a messaing app
 
 ## Getting Started
 
